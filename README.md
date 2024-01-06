@@ -106,7 +106,7 @@ python manage.py runserver
 
 # 开源协议
 
-ITmanage是完全免费和开源的，并根据 [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) 许可证获得许可。
+material是完全免费和开源的，并根据 [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) 许可证获得许可。
 
 # 致谢
 
