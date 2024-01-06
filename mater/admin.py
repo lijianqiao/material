@@ -197,9 +197,14 @@ class DepartmentMaterialStockAdmin(BaseAdmin, ImportExportModelAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs  # 超级用户可以看到所有记录
-        # 物料管理员能看到本部门的
-        user_departments = DepartmentModel.objects.filter(materialadminmodel__user=request.user)
-        return qs.filter(department__in=user_departments)
+        # 获取当前用户所属的部门
+        user_department = UserDepartment.objects.filter(user=request.user).first()
+        if user_department:
+            # 过滤当前用户所属部门的库存
+            return qs.filter(department=user_department.department)
+        else:
+            # 如果用户没有关联的部门，不显示任何记录
+            return qs.none()
 
 
 class MaterialAdminModelAdmin(BaseAdmin):
@@ -323,11 +328,31 @@ class MaterialRequestModelAdmin(BaseAdmin):
         # 如果用户没有关联的部门，不显示任何申请
         return qs.none()
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if 'base' in form.base_fields:
+            # 自动设置申请基地和申请部门
+            user_department = UserDepartment.objects.filter(user=request.user).first()
+            if user_department:
+                # 根据字段名称调整
+                form.base_fields['base'].queryset = BaseModel.objects.filter(id=user_department.department.base_id)
+                form.base_fields['base'].initial = user_department.department.base_id
+                form.base_fields['department'].queryset = DepartmentModel.objects.filter(id=user_department.department_id)
+                form.base_fields['department'].initial = user_department.department_id
+
+                # 限制审批人选项为当前部门的物料管理员
+                form.base_fields['approver'].queryset = MaterialAdminModel.objects.filter(department=user_department.department)
+
+        return form
+
     def get_readonly_fields(self, request, obj=None):
-        if obj:  # 确保对象已经存在
-            if obj.approval_status in ['passed', 'nopass']:
-                return [f.name for f in self.model._meta.fields]  # 返回所有字段名作为只读
-        return self.readonly_fields
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj is None:  # 如果是添加操作
+            return readonly_fields + ['approval_status']
+        if not request.user.is_superuser and not MaterialAdminModel.objects.filter(user=request.user).exists():
+            # 如果用户不是超级管理员且不是物料管理员
+            return readonly_fields + ['approval_status']
+        return readonly_fields
 
     # 增加自定义按钮
     actions = ['export_material_requests', 'rose']
