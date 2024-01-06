@@ -63,6 +63,7 @@ class CreatorNameFilter(admin.SimpleListFilter):
         return queryset
 
 
+@admin.register(BaseModel)
 class BaseModelAdmin(BaseAdmin):
     """
     基地模型的管理员界面。
@@ -72,6 +73,7 @@ class BaseModelAdmin(BaseAdmin):
     search_fields = ['name']
 
 
+@admin.register(DepartmentModel)
 class DepartmentModelAdmin(BaseAdmin):
     """
     部门模型的管理员界面。
@@ -86,6 +88,7 @@ class DepartmentModelAdmin(BaseAdmin):
         return qs.select_related('base')
 
 
+@admin.register(UserDepartment)
 class UserDepartmentAdmin(admin.ModelAdmin):
     """
     用户部门关系管理员界面。
@@ -99,6 +102,7 @@ class UserDepartmentAdmin(admin.ModelAdmin):
     list_filter = ['department']
 
 
+@admin.register(MaterialTypeModel)
 class MaterialTypeModelAdmin(BaseAdmin, ImportExportModelAdmin):
     """
     物料类型模型的管理员界面。
@@ -109,6 +113,7 @@ class MaterialTypeModelAdmin(BaseAdmin, ImportExportModelAdmin):
     search_fields = ['name']
 
 
+@admin.register(MaterialModel)
 class MaterialModelAdmin(BaseAdmin, ImportExportModelAdmin):
     """
     物料模型的管理员界面。
@@ -118,7 +123,7 @@ class MaterialModelAdmin(BaseAdmin, ImportExportModelAdmin):
     resource_class = MaterialResource
     list_display = ['code', 'material_type', 'model', 'unit', 'creator_name', 'created_at']
     search_fields = ['code', 'model', 'material_type__name']
-    list_filter = ('material_type__name', 'model', CreatorNameFilter, ('created_at', DateFieldListFilter), )
+    list_filter = ('material_type__name', 'model', CreatorNameFilter, ('created_at', DateFieldListFilter),)
     readonly_fields = ['qr_code_preview', 'creator', 'created_at']
 
     def qr_code_preview(self, obj):
@@ -180,6 +185,7 @@ class DepartmentMaterialStockForm(forms.ModelForm):
         return quantity_safety
 
 
+@admin.register(DepartmentMaterialStock)
 class DepartmentMaterialStockAdmin(BaseAdmin, ImportExportModelAdmin):
     """
     部门物料存量模型的管理员界面。
@@ -207,6 +213,7 @@ class DepartmentMaterialStockAdmin(BaseAdmin, ImportExportModelAdmin):
             return qs.none()
 
 
+@admin.register(MaterialAdminModel)
 class MaterialAdminModelAdmin(BaseAdmin):
     """
     物料管理员模型的管理员界面。
@@ -215,7 +222,7 @@ class MaterialAdminModelAdmin(BaseAdmin):
     """
     list_display = ['base', 'department', 'user', 'creator_name', 'created_at']
     search_fields = ['base__name', 'department__name', 'user__username']
-    list_filter = ['base', 'department', CreatorNameFilter, ('created_at', DateFieldListFilter),]
+    list_filter = ['base', 'department', CreatorNameFilter, ('created_at', DateFieldListFilter), ]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "user":
@@ -235,6 +242,7 @@ class MaterialRequestItemInlineFormset(forms.BaseInlineFormSet):
     作用：用于物料申请模型内部，管理物料申请的具体物品项。
     特别之处：包括自定义的数据验证，确保申请的数量不超过库存。
     """
+
     def clean(self):
         super().clean()
         for form in self.forms:
@@ -279,6 +287,7 @@ class MaterialRequestItemInline(admin.TabularInline):
         return super().has_delete_permission(request, obj)
 
 
+@admin.register(MaterialRequestModel)
 class MaterialRequestModelAdmin(BaseAdmin):
     """
     物料申请模型的管理员界面。
@@ -337,11 +346,13 @@ class MaterialRequestModelAdmin(BaseAdmin):
                 # 根据字段名称调整
                 form.base_fields['base'].queryset = BaseModel.objects.filter(id=user_department.department.base_id)
                 form.base_fields['base'].initial = user_department.department.base_id
-                form.base_fields['department'].queryset = DepartmentModel.objects.filter(id=user_department.department_id)
+                form.base_fields['department'].queryset = DepartmentModel.objects.filter(
+                    id=user_department.department_id)
                 form.base_fields['department'].initial = user_department.department_id
 
                 # 限制审批人选项为当前部门的物料管理员
-                form.base_fields['approver'].queryset = MaterialAdminModel.objects.filter(department=user_department.department)
+                form.base_fields['approver'].queryset = MaterialAdminModel.objects.filter(
+                    department=user_department.department)
 
         return form
 
@@ -360,6 +371,7 @@ class MaterialRequestModelAdmin(BaseAdmin):
     def export_material_requests(self, request, queryset):
         filename = "material_requests.xlsx"
         return ExportAction.export_as_excel(self, request, queryset, filename)
+
     export_material_requests.short_description = "  物料申请导出"
     export_material_requests.icon = 'fa-solid fa-sheet-plastic'
     export_material_requests.type = 'success'
@@ -389,6 +401,7 @@ class MaterialRequestModelAdmin(BaseAdmin):
 
     def rose(self):
         pass
+
     rose.short_description = "  物料申请图表"
     rose.icon = "fa-regular fa-image"
     rose.type = "warning"
@@ -396,6 +409,7 @@ class MaterialRequestModelAdmin(BaseAdmin):
     rose.action_url = '/mater/rose_chart_view/'
 
 
+@admin.register(DeviceType)
 class DeviceTypeAdmin(BaseAdmin):
     """
     设备类型管理员界面。
@@ -416,6 +430,7 @@ class DeviceTypeAdmin(BaseAdmin):
         super().save_model(request, obj, form, change)
 
 
+@admin.register(DepartmentDevice)
 class DepartmentDeviceAdmin(BaseAdmin):
     """
     部门设备管理员界面。
@@ -431,10 +446,11 @@ class DepartmentDeviceAdmin(BaseAdmin):
         created_at - 记录创建时间。
     """
     list_display = ('device_name', 'department', 'alias', 'location', 'device_status', 'creator_name')
-    search_fields = ('department', 'alias', )
+    search_fields = ('department', 'alias',)
     list_filter = ('department', 'device_status', ('created_at', DateFieldListFilter),)
 
 
+@admin.register(EnvironmentalEquipmentLog)
 class EnvironmentalEquipmentLogAdmin(BaseAdmin, ImportExportModelAdmin):
     """
     环保设备日志管理员界面。
@@ -493,6 +509,7 @@ class EnvironmentalEquipmentLogAdmin(BaseAdmin, ImportExportModelAdmin):
             return qs.none()
 
 
+@admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
     """
     审计日志管理员界面。
@@ -521,18 +538,6 @@ class AuditLogAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(BaseModel, BaseModelAdmin)
-admin.site.register(DepartmentModel, DepartmentModelAdmin)
-admin.site.register(UserDepartment, UserDepartmentAdmin)
-admin.site.register(MaterialTypeModel, MaterialTypeModelAdmin)
-admin.site.register(MaterialModel, MaterialModelAdmin)
-admin.site.register(MaterialAdminModel, MaterialAdminModelAdmin)
-admin.site.register(MaterialRequestModel, MaterialRequestModelAdmin)
-admin.site.register(DepartmentMaterialStock, DepartmentMaterialStockAdmin)
-admin.site.register(DeviceType, DeviceTypeAdmin)
-admin.site.register(DepartmentDevice, DepartmentDeviceAdmin)
-admin.site.register(EnvironmentalEquipmentLog, EnvironmentalEquipmentLogAdmin)
-admin.site.register(AuditLog, AuditLogAdmin)
 admin.site.site_header = '成都物料管理平台'
 admin.site.site_title = '成都物料管理平台'
 admin.site.index_title = '成都物料管理平台'

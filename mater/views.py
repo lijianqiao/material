@@ -60,25 +60,4 @@ def rose_chart_view(request):
 
         page.add(c)
 
-        # # 准备图表数据
-        # categories = list(material_counts.keys())
-        # values = list(material_counts.values())
-        #
-        # c = (
-        #     Pie()
-        #     .add(
-        #         "",
-        #         [list(z) for z in zip(categories, values)],
-        #         radius=["30%", "75%"],
-        #         center=["50%", "50%"],
-        #         rosetype="radius",
-        #     )
-        #     .set_global_opts(
-        #         title_opts=opts.TitleOpts(title=f"{department.name} 物料申请总数：{total_materials}"),
-        #         toolbox_opts=opts.ToolboxOpts(is_show=True),
-        #         legend_opts=opts.LegendOpts(orient="vertical", pos_top="15%", pos_left="80%"),
-        #     )
-        # )
-        # page.add(c)
-
     return HttpResponse(page.render_embed())
