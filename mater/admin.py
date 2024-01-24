@@ -389,7 +389,7 @@ class MaterialRequestModelAdmin(BaseAdmin):
                     '部门': obj.department.name if obj.department else '',
                     '审批人': obj.approver.user.username if obj.approver else '',
                     '审批状态': obj.get_approval_status_display(),
-                    '物料': item.material.model if item.material else '',
+                    '物料': item.material if item.material else '',
                     '数量': item.quantity,
                     '创建人': obj.creator.username if obj.creator else '',
                     '备注': obj.notes,
