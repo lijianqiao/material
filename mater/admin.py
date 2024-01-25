@@ -387,6 +387,7 @@ class MaterialRequestModelAdmin(BaseAdmin):
                     '申请单号': obj.request_number,
                     '基地': obj.base.name if obj.base else '',
                     '部门': obj.department.name if obj.department else '',
+                    '申请人': obj.applicant,
                     '审批人': obj.approver.user.username if obj.approver else '',
                     '审批状态': obj.get_approval_status_display(),
                     '物料': item.material if item.material else '',
